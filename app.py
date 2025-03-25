@@ -178,7 +178,7 @@ def log():
 
 def send_to_render(data):
     try:
-        response = requests.post(RENDER_ENDPOINT, json=data, timeout=5)
+        response = requests.post(RENDER_ENDPOINT, json=data, timeout=15)
         print(f"Data sent to Render.com: {response.status_code}")
         print("Full visitor info:", json.dumps(data, indent=2))
     except Exception as e:
