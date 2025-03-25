@@ -12,7 +12,7 @@ app = Flask(__name__)
 visitor_data = []
 
 # Replace with your Render.com endpoint
-RENDER_ENDPOINT = "https://hello-b8qv.onrender.com/logs"
+RENDER_ENDPOINT = "https://dashboard.render.com/web/srv-cvhbub1u0jms73bk9lo0/logs"
 
 @app.route('/track')
 def track():
