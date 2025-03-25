@@ -56,8 +56,6 @@ def track():
     html = """
     <html>
     <body>
-        <h1>Hello Admin</h1>
-        <p>Hi here is a funny photo post this.</p>
         <img src="https://raw.githubusercontent.com/Ezhilkirthik/Hello/main/download.png" alt="Funny Image" width="400">
         <img src="https://raw.githubusercontent.com/Ezhilkirthik/Hello/main/Image1.jpg" alt="Funny Image" width="400">
         <img src="https://raw.githubusercontent.com/Ezhilkirthik/Hello/main/Image2.jpg" alt="Funny Image" width="300">
