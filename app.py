@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 visitor_data = []
 EMAIL_SENDER = "ezhilkirthikm@gmail.com"
-EMAIL_PASSWORD = "murugesansangeethaezhilkirthikpradharshana1973198120052009"  # Replace with app-specific password
+EMAIL_PASSWORD = "funz squy xfjb acmk"  # Replace with app-specific password
 EMAIL_RECEIVER = "ezhilkirthik2005@gmail.com"
 
 @app.route('/track')
